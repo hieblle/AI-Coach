@@ -5,9 +5,10 @@ from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMP
 from langchain.llms import OpenAI
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 
-# streamlit settings/page configuration
+# 0. streamlit settings/page configuration
 st.set_page_config(page_title="GPT-3 Chatbot", page_icon=":rocket:", layout="wide")
 #st.markdown("# Main page")
 st.sidebar.markdown("#  Main page")
@@ -21,12 +22,13 @@ modus = st.sidebar.selectbox(label= 'Modus', options=["Journaling questions", "A
 model = st.sidebar.selectbox(label= 'Model', options=["gpt-3.5-turbo", "text-davinci-003", "text-ada-001"])
 st.sidebar.info("Select a model according your task.")
 
-# get text input from user
+# 1. get text input from user
 
 def get_text():
 
     journal_text = st.text_input("Please import your Journal entries here as plain text: ", placeholder="Your journal text here.") #, label_visibility="hidden")
     return journal_text
+
 
 
 def journal_analytics(journal_entry):
@@ -50,7 +52,7 @@ def ich_aktie(table):
 
     st.line_chart(table)
 
-# create OpenAI instance
+# 2. create OpenAI instance
 
 llm = OpenAI(
     temperature=0,
@@ -68,11 +70,26 @@ llm = OpenAI(
     
 def main():
     
+    # get journal entries from user
+    ## copy and paste from journal
     user_input = get_text()
     if st.button("Send"):
         #st.text("Prompt: " + new_prompt + "\n\nPrompt for GPT: " + journal_analytics(user_input))
         st.text("This is the original prompt: " + journal_analytics(user_input))
     
+    ## upload file
+    uploaded_file = st.file_uploader("Choose a .txt file", type="txt")
+    if uploaded_file is not None:
+        for line in uploaded_file:
+            st.text(line)
+
+
+    # slider for datetime for chart
+    timeframe = st.slider("Select timeframe of Journal entries",
+                          value=(datetime(2021, 1, 1), datetime(2021, 1, 31)),
+                            format="DD/MM/YYYY")
+    #st.write("Select start and end date: ", timeframe)
+
     # call function to generate linechart
     if st.button("Generate chart"):
         st.text("This is the chart: ")
@@ -80,6 +97,10 @@ def main():
             np.random.randn(20, 3),
             columns=['a', 'b', 'c'])
         ich_aktie(chart_data)
+
+
+
+    
 
 if __name__ == "__main__":
     main()
