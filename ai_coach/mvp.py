@@ -1,11 +1,9 @@
 import streamlit as st
-from langchain.chains import ConversationChain
-from langchain.chains.conversation.memory import ConversationEntityMemory
-from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from langchain.llms import OpenAI
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import os
 
 
 # 0. streamlit settings/page configuration
@@ -16,7 +14,7 @@ st.title("AI-Coach")
 
 st.sidebar.header("Instuctions")
 st.sidebar.info("This is a demo of an AI-Coach. You can ask it anything, but it's best at answering questions about the world and its current state.")
-API_0 = "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"
+API_0 = os.getenv('OPENAI_API_KEY')
 modus = st.sidebar.selectbox(label= 'Modus', options=["Journaling questions", "Analysis", "Therapy Chatbot"])
 # automatisches auswählen? Word embeddings immer ada.
 model = st.sidebar.selectbox(label= 'Model', options=["gpt-3.5-turbo", "text-davinci-003", "text-ada-001"])
