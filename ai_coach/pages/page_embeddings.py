@@ -1,12 +1,15 @@
 import pandas as pd
 import numpy as np
-from sklearn.decomposition import PCA
 import streamlit as st
 import openai
-from openai.embeddings_utils import get_embedding, cosine_similarity
 import os
 import re
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from openai.embeddings_utils import get_embedding, cosine_similarity
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+
 
 # define openai api key and embedding model
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -39,7 +42,11 @@ def create_embeddings_from_txt_upload(df):
     df['embedding'] = df['Text'].apply(lambda x: get_embedding(x, engine=EMBEDDING_MODEL))
     df.to_csv('pages/Journal_embedding.csv')
 
+
 def split_text(content):
+    """Split content into entries based on date pattern and return a Pandas DataFrame.
+       content: string with journal entries
+       df: Pandas DataFrame with dates and entries"""
     # Define a regular expression pattern to match dates
     date_pattern = r'\d{4}.\d{2}.\d{2}'
 
@@ -56,6 +63,25 @@ def split_text(content):
     df = pd.DataFrame(data)
 
     return df
+
+
+def langchain_textsplitter(content_entry):
+    """Split entries into chunks.
+       content_entry: string with one journal entry
+       text_array: list of strings with chunks of the entry"""
+    
+    text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size = 100,
+    chunk_overlap  = 20,
+    length_function = len,
+    )
+    text_array = []
+    texts = text_splitter.create_documents([content_entry])
+    for chunk in texts:
+        text_array.append(chunk.page_content)
+
+    return text_array
+
 
 # function to search in embeddings
 def search(df, search_term, n=3):
@@ -121,10 +147,17 @@ if __name__ == "__main__":
         uploaded_file = st.file_uploader("Choose a .txt-file", type="txt")
         if uploaded_file is not None:
             file = uploaded_file.read().decode("utf-8")
-            df = split_text(file)
-            create_embeddings_from_txt_upload(df)
+            df = split_text(file)   # split file into entrys, returns pd.Dataframe
+            chunked_df = pd.DataFrame(columns=['Date', 'Text'])
+            # iterate over df (entries), chunked_df: pd.Dataframe with chunks
+            for index, row in df.iterrows():
+                chunks = langchain_textsplitter(row['Text']) # split text into chunks, return: list of strings
+                date_vector = [row['Date']]*len(chunks)
+                chunked_df = pd.concat([chunked_df, pd.DataFrame({'Date': date_vector, 'Text': chunks})], ignore_index = True)
+       
+            create_embeddings_from_txt_upload(chunked_df)
             st.success("Your embeddings have been created. You can search them now.")
-            st.write(df.head())
+            st.write(chunked_df)
 
 
 
