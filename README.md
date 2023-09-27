@@ -6,7 +6,7 @@ MVP web-app based on Streamlit
 ! for the process we need an openai api key stored as environment variable locally. https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
 
 
-- "Embeddings local" or "Embeddings Pinecone": 
+- "Embeddings local" or "Embeddings Pinecone" to **chat with your journal**: 
 	A. The first step is to prepare the dataset for search by creating embeddings and save them either on Pinecone or locally as CSV-file.
 		1. Upload, collect data
 		2. Preprocess: split entries, chunk into short sections (Recursive splitting)
@@ -28,3 +28,4 @@ MVP web-app based on Streamlit
 	
 
 - "NLP": First manual drafts for embeddings and classification with models like Word2Vec and BERT, but not on journal data. Very basic models but also very easy interchangeable in the future with state of the art methods.
+
